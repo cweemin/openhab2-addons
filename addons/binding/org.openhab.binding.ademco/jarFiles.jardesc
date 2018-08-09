@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jardesc>
+    <jar path="/etc/openhab2/addons/org.openhab.binding.ademco-2.4.0-SNAPSHOT.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/org.openhab.binding.ademco/jarFiles.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="false" manifestLocation="/org.openhab.binding.ademco/META-INF/MANIFEST.MF" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <file path="/org.openhab.binding.ademco/OSGI-INF/org.openhab.binding.ademco.internal.ademcoHandlerFactory.xml"/>
+        <folder path="/org.openhab.binding.ademco/META-INF"/>
+        <javaElement handleIdentifier="=org.openhab.binding.ademco/src\/main\/java"/>
+        <folder path="/org.openhab.binding.ademco/ESH-INF"/>
+        <file path="/org.openhab.binding.ademco/about.html"/>
+        <file path="/org.openhab.binding.ademco/OSGI-INF/org.openhab.binding.ademco.internal.discovery.EnvisalinkBridgeDiscovery.xml"/>
+        <folder path="/org.openhab.binding.ademco/src"/>
+    </selectedElements>
+</jardesc>
