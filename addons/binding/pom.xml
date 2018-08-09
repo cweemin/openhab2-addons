@@ -16,6 +16,7 @@
   <name>openHAB Bindings</name>
 
   <modules>
+    <module>org.openhab.binding.ademco</module>
     <module>org.openhab.binding.airquality</module>
     <module>org.openhab.binding.airvisualnode</module>
     <module>org.openhab.binding.allplay</module>
