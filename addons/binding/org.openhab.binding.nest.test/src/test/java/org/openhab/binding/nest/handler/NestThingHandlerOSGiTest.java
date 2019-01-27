@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.nest.handler;
 
@@ -49,6 +53,7 @@ import org.eclipse.smarthome.core.thing.link.ManagedItemChannelLinkProvider;
 import org.eclipse.smarthome.core.thing.type.ChannelDefinition;
 import org.eclipse.smarthome.core.thing.type.ChannelGroupDefinition;
 import org.eclipse.smarthome.core.thing.type.ChannelGroupType;
+import org.eclipse.smarthome.core.thing.type.ChannelGroupTypeRegistry;
 import org.eclipse.smarthome.core.thing.type.ChannelType;
 import org.eclipse.smarthome.core.thing.type.ChannelTypeRegistry;
 import org.eclipse.smarthome.core.thing.type.ThingType;
@@ -64,6 +69,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.openhab.binding.nest.internal.config.NestBridgeConfiguration;
+import org.openhab.binding.nest.internal.handler.NestBaseHandler;
 import org.openhab.binding.nest.test.NestTestApiServlet;
 import org.openhab.binding.nest.test.NestTestBridgeHandler;
 import org.openhab.binding.nest.test.NestTestHandlerFactory;
@@ -89,6 +95,7 @@ public abstract class NestThingHandlerOSGiTest extends JavaOSGiTest {
     private static NestTestApiServlet servlet = new NestTestApiServlet();
 
     private ChannelTypeRegistry channelTypeRegistry;
+    private ChannelGroupTypeRegistry channelGroupTypeRegistry;
     private ItemFactory itemFactory;
     private ItemRegistry itemRegistry;
     private EventPublisher eventPublisher;
@@ -128,6 +135,9 @@ public abstract class NestThingHandlerOSGiTest extends JavaOSGiTest {
 
         channelTypeRegistry = getService(ChannelTypeRegistry.class);
         assertThat("Could not get ChannelTypeRegistry", channelTypeRegistry, is(notNullValue()));
+
+        channelGroupTypeRegistry = getService(ChannelGroupTypeRegistry.class);
+        assertThat("Could not get ChannelGroupTypeRegistry", channelGroupTypeRegistry, is(notNullValue()));
 
         eventPublisher = getService(EventPublisher.class);
         assertThat("Could not get EventPublisher", eventPublisher, is(notNullValue()));
@@ -191,7 +201,7 @@ public abstract class NestThingHandlerOSGiTest extends JavaOSGiTest {
         channels.addAll(buildChannels(thingUID, thingType.getChannelDefinitions(), (id) -> id));
 
         for (ChannelGroupDefinition channelGroupDefinition : thingType.getChannelGroupDefinitions()) {
-            ChannelGroupType channelGroupType = channelTypeRegistry
+            ChannelGroupType channelGroupType = channelGroupTypeRegistry
                     .getChannelGroupType(channelGroupDefinition.getTypeUID());
             String groupId = channelGroupDefinition.getId();
             if (channelGroupType != null) {

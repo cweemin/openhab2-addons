@@ -1,14 +1,18 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.tplinksmarthome.internal.device;
 
-import static org.openhab.binding.tplinksmarthome.TPLinkSmartHomeBindingConstants.*;
+import static org.openhab.binding.tplinksmarthome.internal.TPLinkSmartHomeBindingConstants.*;
 
 import java.io.IOException;
 
@@ -17,6 +21,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.HSBType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
+import org.eclipse.smarthome.core.library.types.PercentType;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
@@ -98,10 +103,6 @@ public class BulbDevice extends SmartHomeDevice {
         return null;
     }
 
-    private int convertPercentageToKelvin(int percentage) {
-        return Math.max(colorTempMin, Math.min(colorTempMax, colorTempMin + colorTempRangeFactor * percentage));
-    }
-
     private TransitionLightStateResponse handleColorTemperature(Connection connection, int colorTemperature,
             int transitionPeriod) throws IOException {
         return commands.setTransitionLightStateResponse(
@@ -130,6 +131,9 @@ public class BulbDevice extends SmartHomeDevice {
             case CHANNEL_COLOR:
                 state = new HSBType(lightState.getHue(), lightState.getSaturation(), lightState.getBrightness());
                 break;
+            case CHANNEL_COLOR_TEMPERATURE:
+                state = new PercentType(convertKelvinToPercentage(lightState.getColorTemp()));
+                break;
             case CHANNEL_SWITCH:
                 state = lightState.getOnOff();
                 break;
@@ -143,4 +147,15 @@ public class BulbDevice extends SmartHomeDevice {
         return state;
     }
 
+    private int convertPercentageToKelvin(int percentage) {
+        return guardColorTemperature(colorTempMin + colorTempRangeFactor * percentage);
+    }
+
+    private int convertKelvinToPercentage(int colorTemperature) {
+        return (guardColorTemperature(colorTemperature) - colorTempMin) / colorTempRangeFactor;
+    }
+
+    private int guardColorTemperature(int colorTemperature) {
+        return Math.max(colorTempMin, Math.min(colorTempMax, colorTemperature));
+    }
 }

@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.max.internal.command;
 
@@ -29,8 +33,6 @@ import org.slf4j.LoggerFactory;
  * Cube LAN gateway.
  *
  * @author Marcel Verpaalen - Initial contribution
- * @since 2.0
- *
  */
 public class UdpCubeCommand {
 
@@ -86,11 +88,11 @@ public class UdpCubeCommand {
         } else if (commandType.equals(UdpCommandType.DEFAULTNET)) {
             commandString = MAXCUBE_COMMAND_STRING + serialNumber + "c";
         } else {
-            logger.info("Unknown Command {}", commandType.toString());
+            logger.debug("Unknown Command {}", commandType);
             return false;
         }
         commandResponse.clear();
-        logger.debug("Send {} command to MAX! Cube {}", commandType.toString(), serialNumber);
+        logger.debug("Send {} command to MAX! Cube {}", commandType, serialNumber);
         sendUdpCommand(commandString, ipAddress);
         logger.trace("Done sending command.");
         receiveUdpCommandResponse();
@@ -99,7 +101,6 @@ public class UdpCubeCommand {
     }
 
     private void receiveUdpCommandResponse() {
-
         commandRunning = true;
 
         try (DatagramSocket bcReceipt = new DatagramSocket(23272)) {
@@ -115,12 +116,13 @@ public class UdpCubeCommand {
                 // We have a response
                 String message = new String(receivePacket.getData(), receivePacket.getOffset(),
                         receivePacket.getLength(), StandardCharsets.UTF_8);
-                logger.trace("Broadcast response from {} : {} '{}'", receivePacket.getAddress(), message.length(),
-                        message);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Broadcast response from {} : {} '{}'", receivePacket.getAddress(), message.length(),
+                            message);
+                }
 
                 // Check if the message is correct
                 if (message.startsWith("eQ3Max") && !message.equals(MAXCUBE_COMMAND_STRING)) {
-
                     commandResponse.put("maxCubeIP", receivePacket.getAddress().getHostAddress().toString());
                     commandResponse.put("maxCubeState", message.substring(0, 8));
                     commandResponse.put("serialNumber", message.substring(8, 18));
@@ -137,7 +139,7 @@ public class UdpCubeCommand {
                     } else {
                         // TODO: Further parsing of the other message types
                         commandResponse.put("messageResponse",
-                                Utils.getHex(message.substring(24).getBytes(StandardCharsets.UTF_8)));
+                                Utils.getHex(message.substring(20).getBytes(StandardCharsets.UTF_8)));
                     }
 
                     commandRunning = false;
@@ -163,7 +165,7 @@ public class UdpCubeCommand {
      * Send broadcast message over all active interfaces
      *
      * @param commandString string to be used for the discovery
-     * @param ipAddress IP address of the MAX! Cube
+     * @param ipAddress     IP address of the MAX! Cube
      *
      */
     private void sendUdpCommand(String commandString, String ipAddress) {
@@ -200,7 +202,7 @@ public class UdpCubeCommand {
                             } catch (IOException e) {
                                 logger.debug("IO error during MAX! Cube UDP command sending: {}", e.getMessage());
                             } catch (Exception e) {
-                                logger.info("{}", e.getMessage(), e);
+                                logger.debug("{}", e.getMessage(), e);
                             }
                             logger.trace("Request packet sent to: {} Interface: {}", bc.getHostAddress(),
                                     networkInterface.getDisplayName());

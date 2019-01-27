@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.gardena.internal;
 
@@ -87,13 +91,14 @@ public class GardenaSmartImpl implements GardenaSmart {
     private static final String ABILITY_LIGHT = "light";
     private static final String ABILITY_AMBIENT_TEMPERATURE = "ambient_temperature";
     private static final String ABILITY_SOIL_TEMPERATURE = "soil_temperature";
-    private static final String ABILITY_PUMP_ON_OFF = "pump_on_off";
     private static final String ABILITY_POWER = "power";
     private static final String ABILITY_WATERING = "watering";
+    private static final String ABILITY_MANUAL_WATERING = "manual_watering";
 
     private static final String PROPERTY_BUTTON_MANUAL_OVERRIDE_TIME = "button_manual_override_time";
     private static final String PROPERTY_POWER_TIMER = "power_timer";
     private static final String PROPERTY_WATERING_TIMER = "watering_timer_";
+    private static final String PROPERTY_MANUAL_WATERING_TIMER = "manual_watering_timer";
 
     private static final String DEVICE_CATEGORY_MOWER = "mower";
     private static final String DEVICE_CATEGORY_GATEWAY = "gateway";
@@ -241,13 +246,15 @@ public class GardenaSmartImpl implements GardenaSmart {
                 for (Property property : ability.getProperties()) {
                     property.setAbility(ability);
 
-                    // special conversion for pump, convert on/off to boolean
-                    if (device.getCategory().equals(DEVICE_CATEGORY_PUMP)
-                            && property.getName().equals(ABILITY_PUMP_ON_OFF)) {
-                        property.setValue(
-                                new PropertyValue(String.valueOf("on".equalsIgnoreCase(property.getValueAsString()))));
+                    if (device.getCategory().equals(DEVICE_CATEGORY_PUMP)) {
+                        if (property.getName().equals(PROPERTY_MANUAL_WATERING_TIMER)) {
+                            Integer duration = getIntegerValue(property.getValueAsString());
+                            if (duration == null) {
+                                duration = 0;
+                            }
+                            property.setValue(new PropertyValue(String.valueOf(duration / 60)));
+                        }
                     }
-
                 }
             }
             for (Setting setting : device.getSettings()) {
@@ -354,6 +361,15 @@ public class GardenaSmartImpl implements GardenaSmart {
                         wateringTimerProperty, (Integer) value, valveId);
                 executeSetProperty(device, ABILITY_WATERING, wateringTimerProperty, irrigationProp);
                 break;
+            case PUMP_MANUAL_WATERING_TIMER:
+                Integer duration = getIntegerValue(value);
+                if (duration == null) {
+                    throw new GardenaException("Command '" + commandName + "' requires a number value");
+                }
+                prop = new StringProperty(PROPERTY_MANUAL_WATERING_TIMER, String.valueOf(duration * 60));
+
+                executeSetProperty(device, ABILITY_MANUAL_WATERING, PROPERTY_MANUAL_WATERING_TIMER, prop);
+                break;
             default:
                 throw new GardenaException("Unknown command " + commandName);
         }
@@ -362,6 +378,14 @@ public class GardenaSmartImpl implements GardenaSmart {
             stopRefreshThread(false);
             executeRequest(HttpMethod.POST, getCommandUrl(device, ability), command, NoResult.class);
             startRefreshThread();
+        }
+    }
+
+    private Integer getIntegerValue(Object value) {
+        try {
+            return Integer.valueOf(ObjectUtils.toString(value));
+        } catch (NumberFormatException ex) {
+            return null;
         }
     }
 
@@ -420,6 +444,7 @@ public class GardenaSmartImpl implements GardenaSmart {
 
             Request request = httpClient.newRequest(url).method(method)
                     .timeout(config.getConnectionTimeout(), TimeUnit.SECONDS)
+                    .idleTimeout(config.getConnectionTimeout(), TimeUnit.SECONDS)
                     .header(HttpHeader.CONTENT_TYPE, "application/json").header(HttpHeader.ACCEPT, "application/json")
                     .header(HttpHeader.ACCEPT_ENCODING, "gzip");
 

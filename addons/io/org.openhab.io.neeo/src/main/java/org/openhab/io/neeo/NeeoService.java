@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.io.neeo;
 
@@ -52,7 +56,6 @@ import org.openhab.io.neeo.internal.models.NeeoSystemInfo;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.http.HttpService;
@@ -67,12 +70,9 @@ import org.slf4j.LoggerFactory;
  * @author Tim Roberts - Initial Contribution
  */
 @NonNullByDefault
-@Component(service = { org.eclipse.smarthome.core.events.EventSubscriber.class,
-        NetworkAddressChangeListener.class }, configurationPolicy = ConfigurationPolicy.OPTIONAL, immediate = true, property = {
-                "service.pid=org.openhab.io.neeo.NeeoService", "service.config.description.uri=io:neeo",
-                "service.config.label=NEEO Integration", "service.config.category=io" }
-
-)
+@Component(service = EventSubscriber.class, immediate = true, property = {
+        "service.pid=org.openhab.io.neeo.NeeoService", "service.config.description.uri=io:neeo",
+        "service.config.label=NEEO Integration", "service.config.category=io" })
 public class NeeoService implements EventSubscriber, NetworkAddressChangeListener {
 
     /** The logger */
@@ -363,6 +363,7 @@ public class NeeoService implements EventSubscriber, NetworkAddressChangeListene
     public void setNetworkAddressService(NetworkAddressService networkAddressService) {
         Objects.requireNonNull(networkAddressService, "networkAddressService cannot be null");
         this.networkAddressService = networkAddressService;
+        networkAddressService.addNetworkAddressChangeListener(this);
     }
 
     /**
@@ -371,6 +372,7 @@ public class NeeoService implements EventSubscriber, NetworkAddressChangeListene
      * @param networkAddressService address service
      */
     public void unsetNetworkAddressService(NetworkAddressService networkAddressService) {
+        networkAddressService.removeNetworkAddressChangeListener(this);
         this.networkAddressService = null;
     }
 

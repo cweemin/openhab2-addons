@@ -1,15 +1,19 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.avmfritz.internal.discovery;
 
 import static org.eclipse.smarthome.core.thing.Thing.*;
-import static org.openhab.binding.avmfritz.BindingConstants.*;
+import static org.openhab.binding.avmfritz.internal.BindingConstants.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,9 +28,9 @@ import org.eclipse.smarthome.config.discovery.DiscoveryResult;
 import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.ThingUID;
-import org.openhab.binding.avmfritz.handler.AVMFritzBaseBridgeHandler;
 import org.openhab.binding.avmfritz.internal.ahamodel.AVMFritzBaseModel;
 import org.openhab.binding.avmfritz.internal.ahamodel.GroupModel;
+import org.openhab.binding.avmfritz.internal.handler.AVMFritzBaseBridgeHandler;
 import org.openhab.binding.avmfritz.internal.hardware.FritzAhaWebInterface;
 import org.openhab.binding.avmfritz.internal.hardware.callbacks.FritzAhaDiscoveryCallback;
 import org.slf4j.Logger;
@@ -71,7 +75,7 @@ public class AVMFritzDiscoveryService extends AbstractDiscoveryService {
         logger.debug("initialize discovery service");
         this.bridgeHandler = bridgeHandler;
         if (bridgeHandler == null) {
-            logger.warn("no bridge handler for scan given");
+            logger.debug("no bridge handler for scan given");
         }
         this.activate(null);
     }
@@ -141,7 +145,7 @@ public class AVMFritzDiscoveryService extends AbstractDiscoveryService {
     @Override
     protected void startBackgroundDiscovery() {
         if (scanningJob == null || scanningJob.isCancelled()) {
-            logger.debug("start background scanning job at intervall {}s", SCAN_INTERVAL);
+            logger.debug("start background scanning job at interval {}s", SCAN_INTERVAL);
             scanningJob = scheduler.scheduleWithFixedDelay(this::startScan, INITIAL_DELAY, SCAN_INTERVAL,
                     TimeUnit.SECONDS);
         } else {

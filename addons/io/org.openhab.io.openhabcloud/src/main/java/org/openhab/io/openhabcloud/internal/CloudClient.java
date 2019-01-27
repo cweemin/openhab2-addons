@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.io.openhabcloud.internal;
 
@@ -583,10 +587,17 @@ public class CloudClient {
         public void onComplete(Result result) {
             // Remove this request from list of running requests
             runningRequests.remove(mRequestId);
-            if (result.isFailed() && result.getResponse().getStatus() != HttpStatus.OK_200) {
-                logger.warn("Jetty request {} failed: {}", mRequestId, result.getFailure().getMessage());
-                logger.warn("{}", result.getRequestFailure().getMessage());
-                logger.warn("{}", result.getResponseFailure().getMessage());
+            if ((result != null && result.isFailed())
+                    && (result.getResponse() != null && result.getResponse().getStatus() != HttpStatus.OK_200)) {
+                if (result.getFailure() != null) {
+                    logger.warn("Jetty request {} failed: {}", mRequestId, result.getFailure().getMessage());
+                }
+                if (result.getRequestFailure() != null) {
+                    logger.warn("Request Failure: {}", result.getRequestFailure().getMessage());
+                }
+                if (result.getResponseFailure() != null) {
+                    logger.warn("Response Failure: {}", result.getResponseFailure().getMessage());
+                }
             }
 
             /**

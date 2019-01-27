@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.knx.internal.channel;
 
@@ -73,6 +77,22 @@ public class KNXChannelTypeTest {
         assertTrue(res.getMainGA().isRead());
         assertEquals(1, res.getListenGAs().size());
         assertEquals(1, res.getReadGAs().size());
+    }
+
+    @Test
+    public void testParse_twoLevel() {
+        ChannelConfiguration res = ct.parse("5.001:<3/1024+<4/1025");
+        assertEquals("3/1024", res.getMainGA().getGA());
+        assertEquals(2, res.getListenGAs().size());
+        assertEquals(2, res.getReadGAs().size());
+    }
+
+    @Test
+    public void testParse_freeLevel() {
+        ChannelConfiguration res = ct.parse("5.001:<4610+<4611");
+        assertEquals("4610", res.getMainGA().getGA());
+        assertEquals(2, res.getListenGAs().size());
+        assertEquals(2, res.getReadGAs().size());
     }
 
     private static class MyKNXChannelType extends KNXChannelType {

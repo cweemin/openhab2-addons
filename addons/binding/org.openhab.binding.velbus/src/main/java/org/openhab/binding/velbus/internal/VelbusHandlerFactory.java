@@ -1,14 +1,18 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.velbus.internal;
 
-import static org.openhab.binding.velbus.VelbusBindingConstants.*;
+import static org.openhab.binding.velbus.internal.VelbusBindingConstants.*;
 
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -22,15 +26,15 @@ import org.eclipse.smarthome.core.thing.ThingUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
-import org.openhab.binding.velbus.handler.VelbusBridgeHandler;
-import org.openhab.binding.velbus.handler.VelbusSensorHandler;
-import org.openhab.binding.velbus.handler.VelbusBlindsHandler;
-import org.openhab.binding.velbus.handler.VelbusDimmerHandler;
-import org.openhab.binding.velbus.handler.VelbusRelayHandler;
-import org.openhab.binding.velbus.handler.VelbusVMBGPHandler;
-import org.openhab.binding.velbus.handler.VelbusVMBGPOHandler;
-import org.openhab.binding.velbus.handler.VelbusVMBPIROHandler;
 import org.openhab.binding.velbus.internal.discovery.VelbusThingDiscoveryService;
+import org.openhab.binding.velbus.internal.handler.VelbusBlindsHandler;
+import org.openhab.binding.velbus.internal.handler.VelbusBridgeHandler;
+import org.openhab.binding.velbus.internal.handler.VelbusDimmerHandler;
+import org.openhab.binding.velbus.internal.handler.VelbusRelayHandler;
+import org.openhab.binding.velbus.internal.handler.VelbusSensorHandler;
+import org.openhab.binding.velbus.internal.handler.VelbusVMBGPHandler;
+import org.openhab.binding.velbus.internal.handler.VelbusVMBGPOHandler;
+import org.openhab.binding.velbus.internal.handler.VelbusVMBPIROHandler;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Component;
 
@@ -78,30 +82,28 @@ public class VelbusHandlerFactory extends BaseThingHandlerFactory {
     }
 
     @Override
-    protected synchronized void removeHandler(ThingHandler thingHandler) {
+    protected void removeHandler(ThingHandler thingHandler) {
         if (thingHandler instanceof VelbusBridgeHandler) {
             unregisterDiscoveryService((VelbusBridgeHandler) thingHandler);
         }
-        super.removeHandler(thingHandler);
     }
 
-    private void registerDiscoveryService(VelbusBridgeHandler bridgeHandler) {
+    private synchronized void registerDiscoveryService(VelbusBridgeHandler bridgeHandler) {
         VelbusThingDiscoveryService discoveryService = new VelbusThingDiscoveryService(bridgeHandler);
         discoveryService.activate();
         this.discoveryServiceRegs.put(bridgeHandler.getThing().getUID(), bundleContext
                 .registerService(DiscoveryService.class.getName(), discoveryService, new Hashtable<String, Object>()));
     }
 
-    private void unregisterDiscoveryService(VelbusBridgeHandler bridgeHandler) {
-        ServiceRegistration<?> serviceReg = this.discoveryServiceRegs.get(bridgeHandler.getThing().getUID());
+    private synchronized void unregisterDiscoveryService(VelbusBridgeHandler bridgeHandler) {
+        ServiceRegistration<?> serviceReg = this.discoveryServiceRegs.remove(bridgeHandler.getThing().getUID());
         if (serviceReg != null) {
             VelbusThingDiscoveryService service = (VelbusThingDiscoveryService) bundleContext
-                .getService(serviceReg.getReference());
+                    .getService(serviceReg.getReference());
+            serviceReg.unregister();
             if (service != null) {
                 service.deactivate();
             }
-            serviceReg.unregister();
-            discoveryServiceRegs.remove(bridgeHandler.getThing().getUID());
         }
     }
 }

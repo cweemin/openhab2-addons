@@ -1,19 +1,24 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.max.test;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
-import static org.openhab.binding.max.MaxBinding.*;
+import static org.openhab.binding.max.internal.MaxBindingConstants.*;
 
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.Bridge;
+import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingRegistry;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.ThingUID;
@@ -24,15 +29,14 @@ import org.eclipse.smarthome.test.storage.VolatileStorageService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openhab.binding.max.MaxBinding;
+import org.openhab.binding.max.internal.MaxBindingConstants;
 import org.openhab.binding.max.internal.handler.MaxCubeBridgeHandler;
 
 /**
  * Tests for {@link MaxCubeBridgeHandler}.
  *
- * @author Marcel Verpaalen - Initial version
+ * @author Marcel Verpaalen - Initial contribution
  * @author Wouter Born - Migrate Groovy to Java tests
- * @since 2.0
  */
 public class MaxCubeBridgeHandlerOSGiTest extends JavaOSGiTest {
 
@@ -69,8 +73,8 @@ public class MaxCubeBridgeHandlerOSGiTest extends JavaOSGiTest {
         assertThat(maxBridgeHandler, is(nullValue()));
 
         Configuration configuration = new Configuration();
-        configuration.put(MaxBinding.PROPERTY_SERIAL_NUMBER, "KEQ0565026");
-        configuration.put(MaxBinding.PROPERTY_IP_ADDRESS, "192.168.3.100");
+        configuration.put(Thing.PROPERTY_SERIAL_NUMBER, "KEQ0565026");
+        configuration.put(MaxBindingConstants.PROPERTY_IP_ADDRESS, "192.168.3.100");
 
         ThingUID cubeUid = new ThingUID(BRIDGE_THING_TYPE_UID, "testCube");
 

@@ -1,14 +1,18 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.avmfritz.internal;
 
-import static org.openhab.binding.avmfritz.BindingConstants.*;
+import static org.openhab.binding.avmfritz.internal.BindingConstants.*;
 
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -25,12 +29,12 @@ import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
 import org.eclipse.smarthome.io.net.http.HttpClientFactory;
-import org.openhab.binding.avmfritz.handler.AVMFritzBaseBridgeHandler;
-import org.openhab.binding.avmfritz.handler.BoxHandler;
-import org.openhab.binding.avmfritz.handler.DeviceHandler;
-import org.openhab.binding.avmfritz.handler.GroupHandler;
-import org.openhab.binding.avmfritz.handler.Powerline546EHandler;
 import org.openhab.binding.avmfritz.internal.discovery.AVMFritzDiscoveryService;
+import org.openhab.binding.avmfritz.internal.handler.AVMFritzBaseBridgeHandler;
+import org.openhab.binding.avmfritz.internal.handler.BoxHandler;
+import org.openhab.binding.avmfritz.internal.handler.DeviceHandler;
+import org.openhab.binding.avmfritz.internal.handler.GroupHandler;
+import org.openhab.binding.avmfritz.internal.handler.Powerline546EHandler;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -57,6 +61,8 @@ public class AVMFritzHandlerFactory extends BaseThingHandlerFactory {
      */
     private HttpClient httpClient;
 
+    private AVMFritzDynamicStateDescriptionProvider stateDescriptionProvider;
+
     /**
      * Provides the supported thing types
      */
@@ -72,11 +78,12 @@ public class AVMFritzHandlerFactory extends BaseThingHandlerFactory {
     protected ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         if (BRIDGE_THING_TYPE.equals(thingTypeUID)) {
-            BoxHandler handler = new BoxHandler((Bridge) thing, httpClient);
+            BoxHandler handler = new BoxHandler((Bridge) thing, httpClient, stateDescriptionProvider);
             registerDeviceDiscoveryService(handler);
             return handler;
         } else if (PL546E_STANDALONE_THING_TYPE.equals(thingTypeUID)) {
-            Powerline546EHandler handler = new Powerline546EHandler((Bridge) thing, httpClient);
+            Powerline546EHandler handler = new Powerline546EHandler((Bridge) thing, httpClient,
+                    stateDescriptionProvider);
             registerDeviceDiscoveryService(handler);
             return handler;
         } else if (SUPPORTED_DEVICE_THING_TYPES_UIDS.contains(thing.getThingTypeUID())) {
@@ -84,9 +91,8 @@ public class AVMFritzHandlerFactory extends BaseThingHandlerFactory {
         } else if (SUPPORTED_GROUP_THING_TYPES_UIDS.contains(thingTypeUID)) {
             return new GroupHandler(thing);
         } else {
-            logger.warn("ThingHandler not found for {}", thing.getThingTypeUID());
+            logger.error("ThingHandler not found for {}", thing.getThingTypeUID());
         }
-
         return null;
     }
 
@@ -96,14 +102,15 @@ public class AVMFritzHandlerFactory extends BaseThingHandlerFactory {
     @Override
     protected synchronized void removeHandler(@NonNull ThingHandler thingHandler) {
         if (thingHandler instanceof AVMFritzBaseBridgeHandler) {
-            ServiceRegistration<?> serviceReg = discoveryServiceRegs.get(thingHandler.getThing().getUID());
+            ServiceRegistration<?> serviceReg = discoveryServiceRegs.remove(thingHandler.getThing().getUID());
             if (serviceReg != null) {
                 // remove discovery service, if bridge handler is removed
-                AVMFritzDiscoveryService discoveryService = (AVMFritzDiscoveryService) bundleContext
+                AVMFritzDiscoveryService service = (AVMFritzDiscoveryService) bundleContext
                         .getService(serviceReg.getReference());
-                discoveryService.deactivate();
                 serviceReg.unregister();
-                discoveryServiceRegs.remove(thingHandler.getThing().getUID());
+                if (service != null) {
+                    service.deactivate();
+                }
             }
         }
     }
@@ -113,7 +120,7 @@ public class AVMFritzHandlerFactory extends BaseThingHandlerFactory {
      *
      * @param handler
      */
-    private void registerDeviceDiscoveryService(AVMFritzBaseBridgeHandler handler) {
+    private synchronized void registerDeviceDiscoveryService(AVMFritzBaseBridgeHandler handler) {
         AVMFritzDiscoveryService discoveryService = new AVMFritzDiscoveryService(handler);
         discoveryServiceRegs.put(handler.getThing().getUID(), bundleContext
                 .registerService(DiscoveryService.class.getName(), discoveryService, new Hashtable<String, Object>()));
@@ -126,5 +133,16 @@ public class AVMFritzHandlerFactory extends BaseThingHandlerFactory {
 
     protected void unsetHttpClientFactory(HttpClientFactory httpClientFactory) {
         this.httpClient = null;
+    }
+
+    @Reference
+    protected void setDynamicStateDescriptionProvider(
+            AVMFritzDynamicStateDescriptionProvider stateDescriptionProvider) {
+        this.stateDescriptionProvider = stateDescriptionProvider;
+    }
+
+    protected void unsetDynamicStateDescriptionProvider(
+            AVMFritzDynamicStateDescriptionProvider stateDescriptionProvider) {
+        this.stateDescriptionProvider = null;
     }
 }
