@@ -13,6 +13,7 @@
 package org.openhab.binding.hue.internal;
 
 import java.lang.reflect.Type;
+import java.time.Duration;
 import java.util.Map;
 
 import com.google.gson.reflect.TypeToken;
@@ -20,7 +21,7 @@ import com.google.gson.reflect.TypeToken;
 /**
  * Detailed light information.
  *
- * @author Q42, standalone Jue library (https://github.com/Q42/Jue)
+ * @author Q42 - Initial contribution
  * @author Thomas Höfer - added unique id and changed range check for brightness and saturation
  * @author Denis Dudnik - moved Jue library source code inside the smarthome Hue binding
  * @author Samuel Leisering - added GSon Type to FullLight, refactored content to {@link FullHueObject}
@@ -30,6 +31,7 @@ public class FullLight extends FullHueObject {
     }.getType();
 
     private State state;
+    private final long fadetime = 400; // milliseconds
 
     FullLight() {
     }
@@ -41,5 +43,9 @@ public class FullLight extends FullHueObject {
      */
     public State getState() {
         return state;
+    }
+
+    public Duration getFadeTime() {
+        return Duration.ofMillis(fadetime);
     }
 }

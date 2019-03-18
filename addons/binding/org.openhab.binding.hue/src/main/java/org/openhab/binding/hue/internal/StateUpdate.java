@@ -18,7 +18,7 @@ import org.openhab.binding.hue.internal.State.Effect;
 /**
  * Collection of updates to the state of a light.
  *
- * @author Q42, standalone Jue library (https://github.com/Q42/Jue)
+ * @author Q42 - Initial contribution
  * @author Thomas Höfer - added unique id and changed range check for brightness and saturation
  * @author Denis Dudnik - moved Jue library source code inside the smarthome Hue binding, minor code cleanup
  * @author Samuel Leisering - refactor configuration updates
@@ -187,7 +187,7 @@ public class StateUpdate extends ConfigUpdate {
      * @param timeMillis time in milliseconds [0..6553600]
      * @return this object for chaining calls
      */
-    public StateUpdate setTransitionTime(int timeMillis) {
+    public StateUpdate setTransitionTime(long timeMillis) {
         if (timeMillis < 0 || timeMillis > 6553600) {
             throw new IllegalArgumentException("Transition time out of range");
         }

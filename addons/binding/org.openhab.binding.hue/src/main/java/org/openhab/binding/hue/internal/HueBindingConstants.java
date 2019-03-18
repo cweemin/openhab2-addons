@@ -74,6 +74,8 @@ public class HueBindingConstants {
 
     // Bridge config properties
     public static final String HOST = "ipAddress";
+    public static final String PORT = "port";
+    public static final String PROTOCOL = "protocol";
     public static final String USER_NAME = "userName";
 
     // Light config properties
@@ -81,6 +83,7 @@ public class HueBindingConstants {
     public static final String SENSOR_ID = "sensorId";
     public static final String PRODUCT_NAME = "productName";
     public static final String UNIQUE_ID = "uniqueId";
+    public static final String FADETIME = "fadetime";
 
     public static final String NORMALIZE_ID_REGEX = "[^a-zA-Z0-9_]";
 }

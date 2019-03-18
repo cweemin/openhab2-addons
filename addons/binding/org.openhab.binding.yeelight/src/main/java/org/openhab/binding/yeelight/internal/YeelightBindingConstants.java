@@ -19,6 +19,7 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
  * used across the whole binding.
  *
  * @author Coaster Li - Initial contribution
+ * @author Joe Ho - Added Duration / Added command channel
  */
 public class YeelightBindingConstants {
 
@@ -32,14 +33,17 @@ public class YeelightBindingConstants {
     public static final ThingTypeUID THING_TYPE_CTBULB = new ThingTypeUID(BINDING_ID, "ct_bulb");
     public static final ThingTypeUID THING_TYPE_WONDER = new ThingTypeUID(BINDING_ID, "wonder");
     public static final ThingTypeUID THING_TYPE_STRIPE = new ThingTypeUID(BINDING_ID, "stripe");
+    public static final ThingTypeUID THING_TYPE_DESKLAMP = new ThingTypeUID(BINDING_ID, "desklamp");
 
     // List of thing Parameters names
     public static final String PARAMETER_DEVICE_ID = "deviceId";
+    public static final String PARAMETER_DURATION = "duration";
 
     // List of all Channel ids
     public static final String CHANNEL_BRIGHTNESS = "brightness";
     public static final String CHANNEL_COLOR = "color";
     public static final String CHANNEL_COLOR_TEMPERATURE = "colorTemperature";
+    public static final String CHANNEL_COMMAND = "command";
 
     // Constants used
     public static final int COLOR_TEMPERATURE_MINIMUM = 1700;

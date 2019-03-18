@@ -29,7 +29,7 @@ System trigger channels are supported using non-retained properties, with *enum*
 
 ### HomeAssistant Thing
 
-HomeAssistant MQTT Components are recognised as well. The base topic needs to be **homeassistant**. 
+HomeAssistant MQTT Components are recognized as well. The base topic needs to be **homeassistant**. 
 The mapping is structured like this:
 
 
@@ -70,8 +70,11 @@ All things require a configured broker.
 * __transformationPatternOut__: An optional transformation pattern like [JSONPath](http://goessner.net/articles/JsonPath/index.html#e2) that is applied before publishing a value to MQTT.
 * __commandTopic__: The MQTT topic that commands are send to. This can be empty, the thing channel will be read-only then. Transformations are not applied for sending data.
 * __formatBeforePublish__: Format a value before it is published to the MQTT broker. The default is to just pass the channel/item state. If you want to apply a prefix, say "MYCOLOR,", you would use "MYCOLOR,%s". If you want to adjust the precision of a number to for example 4 digits, you would use "%.4f".
-* __postCommand__: If the received MQTT value should not only update the state of linked items, but command them, enable this option. You usually need this enabled if your item is also linked to another channel, say a KNX actor, and you want a received MQTT payload to command that KNX actor. 
+* __postCommand__: If `true`, the received MQTT value will not only update the state of linked items, but command it.
+  The default is `false`.
+  You usually need this to be `true` if your item is also linked to another channel, say a KNX actor, and you want a received MQTT payload to command that KNX actor. 
 * __retained__: The value will be published to the command topic as retained message. A retained value stays on the broker and can even be seen by MQTT clients that are subscribing at a later point in time. 
+* __trigger__: If `true`, the state topic will not update a state, but trigger a channel instead.
 
 ### Channel Type "string"
 
@@ -92,8 +95,8 @@ You can connect this channel to a Number item.
 
 ### Channel Type "dimmer"
  
-* __on__: A optional string (like "ON"/"Open") that is recognised as minimum.
-* __off__: A optional string (like "OFF"/"Close") that is recognised as maximum.
+* __on__: A optional string (like "ON"/"Open") that is recognized as minimum.
+* __off__: A optional string (like "OFF"/"Close") that is recognized as maximum.
 * __min__: A required minimum value.
 * __max__: A required maximum value.
 * __step__: For decrease, increase commands the step needs to be known
@@ -106,11 +109,11 @@ You can connect this channel to a Rollershutter or Dimmer item.
 
 ### Channel Type "contact", "switch"
 
-* __on__: A optional number (like 1, 10) or a string (like "ON"/"Open") that is recognised as on/open state.
-* __off__: A optional number (like 0, -10) or a string (like "OFF"/"Close") that is recognised as off/closed state.
+* __on__: A optional number (like 1, 10) or a string (like "ON"/"Open") that is recognized as on/open state.
+* __off__: A optional number (like 0, -10) or a string (like "OFF"/"Close") that is recognized as off/closed state.
 
-The contact channel by default recognises `"OPEN"` and `"CLOSED"`. You can connect this channel to a Contact item.
-The switch channel by default recognises `"ON"` and `"OFF"`. You can connect this channel to a Switch item.
+The contact channel by default recognizes `"OPEN"` and `"CLOSED"`. You can connect this channel to a Contact item.
+The switch channel by default recognizes `"ON"` and `"OFF"`. You can connect this channel to a Switch item.
 
 If **on** and **off** are not configured it publishes the strings mentioned before respectively.
 
@@ -118,8 +121,8 @@ You can connect this channel to a Contact or Switch item.
 
 ### Channel Type "colorRGB", "colorHSB"
 
-* __on__: An optional string (like "BRIGHT") that is recognised as on state. (ON will always be recognised.)
-* __off__: An optional string (like "DARK") that is recognised as off state. (OFF will always be recognised.)
+* __on__: An optional string (like "BRIGHT") that is recognized as on state. (ON will always be recognized.)
+* __off__: An optional string (like "DARK") that is recognized as off state. (OFF will always be recognized.)
 * __onBrightness__: If you connect this channel to a Switch item and turn it on,
 color and saturation are preserved from the last state, but
 the brightness will be set to this configured initial brightness (default: 10%).
@@ -158,9 +161,9 @@ The channel expects values on the corresponding MQTT topic to be in this format 
 
 ### Channel Type "rollershutter"
 
-* __on__: An optional string (like "Open") that is recognised as UP state.
-* __off__: An optional string (like "Close") that is recognised as DOWN state.
-* __stop__: An optional string (like "Stop") that is recognised as STOP state.
+* __on__: An optional string (like "Open") that is recognized as UP state.
+* __off__: An optional string (like "Close") that is recognized as DOWN state.
+* __stop__: An optional string (like "Stop") that is recognized as STOP state.
 
 You can connect this channel to a Rollershutter or Dimmer item.
 
@@ -241,7 +244,7 @@ Have a look at the following textual examples.
 
 ### A broker Thing with a Generic MQTT Thing and a few channels 
 
-demo.Things:
+demo1.things:
 
 ```xtend
 Bridge mqtt:broker:myUnsecureBroker [ host="192.168.0.42", secure=false ]
@@ -257,11 +260,35 @@ Bridge mqtt:broker:myUnsecureBroker [ host="192.168.0.42", secure=false ]
 }
 ```
 
-demo.items:
+demo2.things:
+
+```xtend
+Bridge mqtt:broker:WorkBroker "Work Broker" [ host="localhost", port="1883", secure=false, username="openhabian", password="ohmqtt", clientID="WORKOPENHAB24" ]
+
+Thing mqtt:topic:WorkBroker:WorkSonoff "Work Sonoff" (mqtt:broker:WorkBroker) @ "Home" {
+    Channels:
+        Type switch : WorkLight "Work Light" [ stateTopic="stat/worklight/POWER", commandTopic="cmnd/worklight/POWER" ]
+        Type switch : WorkLightTele "Work Tele" [ stateTopic="tele/worklight/STATE", transformationPattern="JSONPATH:$.POWER" ]
+}
+```
+
+When using .things and .items files for configuration, items and channels follow the format of:
+
+```xtend
+<ITEM-TYPE> <ITEM-NAME> "<FRIENDLY-NAME>" { channel="mqtt:topic:<BROKER-NAME>:<THING-NAME>:<CHANNEL-NAME>" }
+```
+
+demo1.items:
 
 ```xtend
 Switch Kitchen_Light "Kitchen Light" { channel="mqtt:topic:myUnsecureBroker:mything:lamp" }
 Rollershutter shutter "Blind" { channel="mqtt:topic:myUnsecureBroker:mything:blind" }
+```
+
+demo2.items:
+
+```xtend
+Switch SW_WorkLight "Work Light Switch" { channel="mqtt:topic:WorkBroker:WorkSonoff:WorkLight", channel="mqtt:topic:WorkBroker:WorkSonoff:WorkLightTele" }
 ```
 
 ### Publish an MQTT value on startup
@@ -278,9 +305,11 @@ then
 end
 ```
 
-### Synchronise two instances
+### Synchronize two instances
 
-Define a broker and a trigger channel on that broker in a "demo.Things" file:
+To synchronize item items from a SOURCE openHAB instance to a DESTINATION instance, do the following:
+
+Define a broker and a trigger channel for your DESTINATION openHAB installation (`thing` file):
 
 ```xtend
 Bridge mqtt:broker:myUnsecureBroker [ host="192.168.0.42", secure=false ]
@@ -290,8 +319,21 @@ Bridge mqtt:broker:myUnsecureBroker [ host="192.168.0.42", secure=false ]
 }
 ```
 
-If you want to publish all item changes to an MQTT topic "allItems/",
-group items into a `myGroupOfItems` and do this in a "publishAll.rules" file:
+The trigger channel will trigger for each received message on the MQTT topic "allItems/".
+Now push those changes to your items in a `rules` file:
+
+```xtend
+rule "Publish all"
+when 
+      Channel "mqtt:broker:myUnsecureBroker:myTriggerChannel" triggered
+then
+    val parts = receivedEvent.split("#")
+    sendCommand(parts.get(0), parts.get(1))
+end
+```
+
+On your SOURCE openHAB installation, you need to define a group `myGroupOfItems` and add all items
+to it that you want to synchronize. Then add this rule to a `rule` file:
 
 ```xtend
 rule "Publish all"
@@ -299,19 +341,7 @@ when
       Member of myGroupOfItems changed
 then
    val actions = getActions("mqtt","mqtt:broker:myUnsecureBroker")
-   actions.publishMQTT("allItems/"+triggeringItem.name,triggeringItem.state)
-end
-```
-
-If you want to receive all item changes from an MQTT topic "allItems/",
-do this in a "ReceiveAll.rules" file:
-
-```xtend
-rule "Publish all"
-when 
-      Channel "mqtt:broker:myUnsecureBroker:myTriggerChannel" triggered
-then
-   // TODO
+   actions.publishMQTT("allItems/"+triggeringItem.name,triggeringItem.state.toString)
 end
 ```
 
@@ -327,7 +357,7 @@ You do not need to convert everything in one go. MQTT1 and MQTT2 can coexist.
 Assume you have this item:
 
 ```xtend
-Switch ExampleItem "Heatpump Power" { mqtt=">[mosquitto:heatpump/set:command:*:DEFAULT)],<[mosquitto:heatpump/state:JSONPATH($.power)]" }
+Switch ExampleItem "Heatpump Power" { mqtt=">[mosquitto:heatpump/set:command:*:DEFAULT)],<[mosquitto:heatpump:JSONPATH($.power)]" }
 ```
 
 This converts to an entry in your *.things file with a **Broker Thing** and a **Generic MQTT Thing** that uses the bridge:
@@ -335,9 +365,9 @@ This converts to an entry in your *.things file with a **Broker Thing** and a **
 ```xtend
 Bridge mqtt:broker:myUnsecureBroker [ host="192.168.0.42", secure=false ]
 {
-    Thing mqtt:topic:mything {
+    Thing topic mything "My Thing" {
     Channels:
-        Type switch : heatpumpChannel "Heatpump Power" [ stateTopic="heatpump", commandTopic="heatpump/set" transformationPattern="JSONPATH:$.power" ]
+        Type switch : heatpumpChannel "Heatpump Power" [ stateTopic="heatpump", commandTopic="heatpump/set", transformationPattern="JSONPATH:$.power" ]
     }
 }
 ```
@@ -347,7 +377,7 @@ Add as many channels as you have items and add the *stateTopic* and *commandTopi
 Your items change to:
 
 ```xtend
-Switch ExampleItem "Heatpump Power" { channel="mqtt:myUnsecureBroker:topic:mything:heatpumpChannel" }
+Switch ExampleItem "Heatpump Power" { channel="mqtt:topic:myUnsecureBroker:mything:heatpumpChannel" }
 ```
 
 
@@ -356,7 +386,7 @@ Switch ExampleItem "Heatpump Power" { channel="mqtt:myUnsecureBroker:topic:mythi
 If you receive updates from two different topics, you need to create multiple channels now, 1 for each MQTT receive topic.
 
 ```xtend
-Switch ExampleItem "Heatpump Power" { mqtt=">[mosquitto:heatpump/set:command:*:DEFAULT)],<[mosquitto:heatpump/state1:state:*:DEFAULT",<[mosquitto:heatpump/state2:state:*:DEFAULT" }
+Switch ExampleItem "Heatpump Power" { mqtt=">[mosquitto:heatpump/set:command:*:DEFAULT)],<[mosquitto:heatpump/state1:state:*:DEFAULT,<[mosquitto:heatpump/state2:state:*:DEFAULT" }
 ```
 
 This converts to:
@@ -364,7 +394,7 @@ This converts to:
 ```xtend
 Bridge mqtt:broker:myUnsecureBroker [ host="192.168.0.42", secure=false ]
 {
-    Thing mqtt:topic:mything {
+    Thing topic mything "My Thing" {
     Channels:
         Type switch : heatpumpChannel "Heatpump Power" [ stateTopic="heatpump/state1", commandTopic="heatpump/set" ]
         Type switch : heatpumpChannel2 "Heatpump Power" [ stateTopic="heatpump/state2" ]
@@ -376,6 +406,6 @@ Link both channels to one item. That item will publish to "heatpump/set" on a ch
 receive values from "heatpump/state1" and "heatpump/state2".
 
 ```xtend
-Switch ExampleItem "Heatpump Power" { channel="mqtt:myUnsecureBroker:topic:mything:heatpumpChannel",
-                                      channel="mqtt:myUnsecureBroker:topic:mything:heatpumpChannel2" }
+Switch ExampleItem "Heatpump Power" { channel="mqtt:topic:myUnsecureBroker:mything:heatpumpChannel",
+                                      channel="mqtt:topic:myUnsecureBroker:mything:heatpumpChannel2" }
 ```

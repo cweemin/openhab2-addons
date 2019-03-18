@@ -55,9 +55,9 @@ import org.slf4j.LoggerFactory;
 /**
  * Handles connection and event handling to a SqueezeBox Server.
  *
- * @author Markus Wolters
- * @author Ben Jones
- * @author Dan Cunningham (OH2 Port)
+ * @author Markus Wolters - Initial contribution
+ * @author Ben Jones - ?
+ * @author Dan Cunningham - OH2 port
  * @author Daniel Walters - Fix player discovery when player name contains spaces
  * @author Mark Hilbush - Improve reconnect logic. Improve player status updates.
  * @author Mark Hilbush - Implement AudioSink and notifications
@@ -74,7 +74,7 @@ public class SqueezeBoxServerHandler extends BaseBridgeHandler {
             .singleton(SQUEEZEBOXSERVER_THING_TYPE);
 
     // time in seconds to try to reconnect
-    private int RECONNECT_TIME = 60;
+    private static final int RECONNECT_TIME = 60;
 
     // utf8 charset name
     private static final String UTF8_NAME = StandardCharsets.UTF_8.name();
@@ -802,7 +802,7 @@ public class SqueezeBoxServerHandler extends BaseBridgeHandler {
         private String constructCoverArtUrl(String mac, boolean coverart, String coverid, String artwork_url) {
             String hostAndPort;
             if (StringUtils.isNotEmpty(userId)) {
-                hostAndPort = "http://" + userId + ":" + password + "@" + host + ":" + webport;
+                hostAndPort = "http://" + encode(userId) + ":" + encode(password) + "@" + host + ":" + webport;
             } else {
                 hostAndPort = "http://" + host + ":" + webport;
             }
